@@ -1,5 +1,5 @@
 export const LEVELS = {
-  trace: 0,
+  log: 0,
   debug: 10,
   info: 20,
   warn: 30,
@@ -15,6 +15,6 @@ export const LEVEL_STYLE = {
   error: { color: 'white', bg: 'red', bold: true }
 }
 
-export function normalizeLevel(level = 'trace') {
-  return LEVELS[level] !== undefined ? level : 'trace'
+export function normalizeLevel(level = 'log') {
+  return LEVELS[level] !== undefined ? level : 'log'
 }

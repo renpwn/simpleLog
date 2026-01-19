@@ -10,18 +10,22 @@ export class Logger {
     this.level = normalizeLevel(opts.level)
     this.color = !!opts.color
     this.tty = process.stdout.isTTY && !process.env.CI
-    
-    this.time = opts.time?.enabled
+
+    this.time = !!opts.time
+    this.timeLocale = opts.time?.locale || 'id'
     this.timePos = opts.time?.position || 'prefix'
-    
-    this.stringify = createStringifier(opts.truncate || { maxLength: opts.maxLength })
+
+    this.stringify = createStringifier(
+      opts.truncate || { maxLength: opts.maxLength }
+    )
+
     this.file = new FileSink(opts.file || {})
-    
+
     this.progress = opts.progress
       ? new ProgressManager(opts.progress.slots || [], opts.progress.theme)
       : null
-    this.lastProgressLines = 0;
-    this.slots = opts.progress.slots || []
+
+    this.lastProgressLines = 0
   }
 
   allow(type) {
@@ -32,61 +36,82 @@ export class Logger {
     if (!this.color) return user
     return { ...LEVEL_STYLE[type], ...user }
   }
-  
-  update(name, cur, total) {
-    this.progress.render(name, cur, total)
+
+  /* ================= PROGRESS API ================= */
+
+  updateProgress(name, cur, total, text) {
+    if (!this.progress) return
+    this.progress.update(name, cur, total, text)
     this.renderProgress()
   }
 
-  clearProgress() {
+  removeProgress(name) {
     if (!this.progress) return
-    if (!this.tty || this.lastProgressLines === 0) return;
+    this.progress.remove(name)
+    this.renderProgress()
+  }
 
-    // naik ke atas sebanyak jumlah progress
-    process.stdout.write(`\x1b[${this.lastProgressLines}A`);
+  /* ================= RENDER CONTROL ================= */
 
-    // clear baris progress
+  clearProgress() {
+    if (!this.progress || !this.tty || this.lastProgressLines === 0) return
+
+    process.stdout.write(`\x1b[${this.lastProgressLines}A`)
     for (let i = 0; i < this.lastProgressLines; i++) {
-      process.stdout.write("\x1b[2K"); // clear line
-      process.stdout.write("\x1b[1B"); // turun
+      process.stdout.write('\x1b[2K')
+      process.stdout.write('\x1b[1B')
     }
-    
-    // balik ke posisi awal
-    process.stdout.write(`\x1b[${this.lastProgressLines}A`);
-    
-    this.lastProgressLines = 0;
+    process.stdout.write(`\x1b[${this.lastProgressLines}A`)
+    this.lastProgressLines = 0
   }
 
   renderProgress() {
-    if (!this.progress) return
+    if (!this.progress || !this.tty) return
+
+    const snapshot = this.progress.snapshot()
+    if (!snapshot.length) return
+
     this.clearProgress()
-    this.progress.render()
-    this.lastProgressLines = this.slots.length + 1;
+
+    process.stdout.write('\n')
+    for (const p of snapshot) {
+      process.stdout.write(`${p.line} ${p.text}\n`)
+    }
+
+    this.lastProgressLines = snapshot.length + 1
   }
+
+  /* ================= CORE WRITE ================= */
 
   write(type, args, style) {
     if (!this.allow(type)) return
-    
+
     const msg = args.map(this.stringify.toStr).join(' ')
-    const t = this.time ? formatTime() : null
+    const t = this.time ? formatTime(this.timeLocale) : null
+
     const out =
-      t && this.timePos === 'suffix' ? `${msg} | ${t}` :
-      t ? `${t} ${msg}` : msg
-    
-    if (this.progress){
+      t && this.timePos === 'suffix'
+        ? `${msg} | ${t}`
+        : t
+        ? `${t} ${msg}`
+        : msg
+
+    if (this.progress) {
       this.clearProgress()
-      
-      process.stdout.write(format(out, this.style(type, style), this.tty) + "\n");
-      
+      process.stdout.write(
+        format(out, this.style(type, style), this.tty) + '\n'
+      )
       this.renderProgress()
-    }else
+    } else {
       console.log(format(out, this.style(type, style), this.tty))
-    
+    }
+
     this.file.write(type, out)
   }
 
-  debug(...a){ this.write('debug', a) }
-  info(...a){ this.write('info', a) }
-  warn(...a){ this.write('warn', a) }
-  error(...a){ this.write('error', a) }
+  log(...a) { this.write('log', a) }
+  debug(...a) { this.write('debug', a) }
+  info(...a)  { this.write('info', a) }
+  warn(...a)  { this.write('warn', a) }
+  error(...a) { this.write('error', a) }
 }

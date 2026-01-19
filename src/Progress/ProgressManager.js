@@ -7,16 +7,51 @@ export class ProgressManager {
     this.renderer = new ProgressRenderer(theme)
   }
 
-  update(name, cur, total) {
-    this.state.set(name, { cur, total })
+  update(name, cur, total, text = "", style = {}) {
+    this.state.set(name, {
+      cur,
+      total: total < cur ? cur : total,
+      text,
+      start: Date.now(),
+      style
+    })
   }
 
-  render() {
-    console.log(''); // line kosong sebelum progress
-    
-    for (const s of this.slots) {
-      const v = this.state.get(s) || { cur: 0, total: 0 }
-      console.log(this.renderer.render(s, v.cur, v.total))
-    }
+  remove(name) {
+    this.state.delete(name)
+  }
+
+  clear() {
+    this.state.clear()
+  }
+
+  snapshot() {
+    return this.slots.map(name => {
+      const v = this.state.get(name) || { cur: 0, total: 0, text: '' }
+
+      const percent = v.total
+        ? Math.floor((v.cur / v.total) * 100)
+        : 0
+
+      const elapsed = v.start
+        ? Math.floor((Date.now() - v.start) / 1000)
+        : 0
+
+      const eta =
+        v.cur && v.total && elapsed
+          ? Math.floor((elapsed / v.cur) * (v.total - v.cur))
+          : null
+
+      return {
+        name,
+        cur: v.cur,
+        total: v.total,
+        percent,
+        elapsed,
+        eta,
+        text: v.text,
+        line: this.renderer.render(name, v.cur, v.total, v.style)
+      }
+    })
   }
 }
