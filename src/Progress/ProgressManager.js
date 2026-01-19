@@ -5,15 +5,15 @@ export class ProgressManager {
     this.slots = slots
     this.state = new Map()
     this.renderer = new ProgressRenderer(theme)
+    this.theme = theme?.style || null
   }
 
-  update(name, cur, total, text = "", style = {}) {
+  update(name, cur, total, text = "") {
     this.state.set(name, {
       cur,
       total: total < cur ? cur : total,
       text,
-      start: Date.now(),
-      style
+      start: Date.now()
     })
   }
 
@@ -26,7 +26,12 @@ export class ProgressManager {
   }
 
   snapshot() {
-    return this.slots.map(name => {
+    const s = a => Array.isArray(a) ? a : []
+    
+    return this.slots.map(item => {
+      const name = s(item)[0] || item
+      const vStyle = s(item)[1] || { }
+      
       const v = this.state.get(name) || { cur: 0, total: 0, text: '' }
 
       const percent = v.total
@@ -49,8 +54,8 @@ export class ProgressManager {
         percent,
         elapsed,
         eta,
-        text: v.text,
-        line: this.renderer.render(name, v.cur, v.total, v.style)
+        //text: v.text,
+        line: this.renderer.render(name, v.cur, v.total, v.text, vStyle)
       }
     })
   }

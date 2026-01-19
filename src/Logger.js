@@ -75,7 +75,7 @@ export class Logger {
 
     process.stdout.write('\n')
     for (const p of snapshot) {
-      process.stdout.write(`${p.line} ${p.text}\n`)
+      process.stdout.write(`${p.line}\n`)
     }
 
     this.lastProgressLines = snapshot.length + 1
