@@ -1,7 +1,7 @@
 {
   "name": "@renpwn/simplelog",
-  "version": "1.0.0",
-  "description": "Simple, safe, audit-friendly logger for CLI and long-running Node.js processes",
+  "version": "0.0.1",
+  "description": "Lightweight, safe, audit-friendly logger for CLI tools and long-running Node.js processes",
   "type": "module",
   "main": "./src/index.js",
   "exports": {
@@ -12,14 +12,30 @@
   ],
   "keywords": [
     "logger",
-    "log",
+    "logging",
     "cli",
+    "terminal",
+    "progress-bar",
     "jsonl",
     "ndjson",
-    "simple"
+    "tty",
+    "node"
   ],
   "license": "MIT",
+  "author": "RenPwn",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/renpwn/simpleLog.git"
+  },
+  "homepage": "https://github.com/renpwn/simpleLog",
+  "bugs": {
+    "url": "https://github.com/renpwn/simpleLog/issues"
+  },
+  "sideEffects": false,
   "engines": {
     "node": ">=16"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
