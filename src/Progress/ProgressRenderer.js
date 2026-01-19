@@ -8,6 +8,7 @@ export class ProgressRenderer {
     this.style = style
     this.left = left
     this.right = right
+    this.tty = process.stdout.isTTY && !process.env.CI
   }
   
   styleResolve(style, current, percent){
@@ -37,9 +38,9 @@ export class ProgressRenderer {
     style = this.styleResolve(style, cur, percent)
     this.style = this.styleResolve(this.style, cur)
     
-    const left = format(`${name} ${this.left}`, this.style, true)
-    const right = format(`${this.right} ${percent}% ${text}`, this.style, true)
-    const bar = format(this.filled.repeat(filled) + this.empty.repeat(this.size - filled), style, true)
+    const left = format(`${name} ${this.left}`, this.style, this.tty)
+    const right = format(`${this.right} ${percent}% ${text}`, this.style, this.tty)
+    const bar = format(this.filled.repeat(filled) + this.empty.repeat(this.size - filled), style, this.tty)
     
 
     return left + bar + right
