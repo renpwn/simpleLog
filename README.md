@@ -170,6 +170,10 @@ const timer = setInterval(() => {
 **Notes**
 - Progress bars are shown only in TTY
 - Normal logs temporarily clear progress and redraw it
+- Each slot name acts as a unique key
+- `log.updateProgress(name, ...)` updates the progress state for that key
+- Only slots defined in `progress.slots` are rendered
+- Progress is stateful and does not auto-finish or auto-remove
 
 ---
 
