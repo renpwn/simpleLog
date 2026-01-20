@@ -1,6 +1,6 @@
 # simpleLog
 
-> Lightweight, opinionated, **TTY-aware logger** for Node.js with progress bar, file output, safe stringify, and zero dependencies.
+> Lightweight, opinionated, **TTY-aware logger** for Node.js with progress bars, file output, safe stringify, and zero dependencies.
 
 [![NPM](https://img.shields.io/npm/v/@renpwn/simplelog)](https://www.npmjs.com/package/@renpwn/simplelog)
 [![Downloads](https://img.shields.io/npm/dm/@renpwn/simplelog)](https://www.npmjs.com/package/@renpwn/simplelog)
@@ -11,11 +11,11 @@
 ## ✨ Features
 
 - 🎨 Colored log levels (log, debug, info, warn, error)
-- 🧠 Safe stringify (object → JSON, anti crash, truncate)
-- 🕒 Timestamp with locale (`id`, `en`)
-- 📁 File logging (TXT / JSONL + auto backup)
+- 🧠 Safe stringify (object → JSON, anti-crash, truncate)
+- 🕒 Timestamp with locale support (`id`, `en`)
+- 📁 File logging (TXT / JSONL with auto-backup)
 - 📊 Multi progress bar (TTY-aware, auto redraw)
-- 🧹 Non-TTY & CI safe
+- 🧹 CI & non-TTY safe
 - ⚡ Zero dependencies
 - 🧩 Modular & audit-friendly
 
@@ -57,18 +57,18 @@ log.error('error')
 
 ---
 
-## 🧠 Full Usage Example
+## 🧠 Full Usage Examples
 
-### 1️⃣ Logger dengan Level, Warna & Waktu
+### 1️⃣ Logger with Level, Color & Time
 
 ```js
 import { simpleLog } from '@renpwn/simplelog'
 
 const log = simpleLog({
   level: 'debug',   // log | debug | info | warn | error | silent
-  color: true,      // enable ANSI color
+  color: true,      // enable ANSI color (TTY only)
   time: {
-    locale: 'id',   // id | en
+    locale: 'en',   // en | id
     position: 'prefix' // prefix | suffix
   }
 })
@@ -79,10 +79,10 @@ log.warn('Memory usage high')
 log.error({ code: 500, msg: 'Fatal error' })
 ```
 
-📌 **Keterangan**
-- `level` → filter minimum level yang ditampilkan
-- `color` → otomatis nonaktif jika non-TTY
-- `time` → format waktu ringkas & konsisten
+**Notes**
+- `level` → minimum log level to display
+- `color` → auto-disabled in non-TTY / CI
+- `time` → compact and consistent timestamp
 
 ---
 
@@ -100,7 +100,7 @@ log.info({
 })
 ```
 
-📌 Object akan di-`JSON.stringify`, dan otomatis dipotong jika terlalu panjang.
+Objects are safely stringified and automatically truncated.
 
 ---
 
@@ -137,18 +137,19 @@ Output:
 {"time":"2026-01-20T07:21:10.120Z","level":"info","message":"App started"}
 ```
 
-📌 File write aman dengan auto-backup `.bak`.
+File writes are atomic with automatic `.bak` backup.
 
 ---
 
-### 4️⃣ Progress Bar (Multi Slot)
+### 4️⃣ Progress Bar (Multi Slot, Styled & Unstyled)
 
 ```js
 const log = simpleLog({
   progress: {
     slots: [
       ['Scraping', { color: 'cyan' }],
-      ['DB Queue', 'auto']
+      ['DB Queue', 'auto'],
+      'WEB Queue'
     ]
   }
 })
@@ -166,9 +167,9 @@ const timer = setInterval(() => {
 }, 300)
 ```
 
-📌 **Catatan**
-- Progress hanya muncul di TTY
-- Log biasa akan membersihkan progress lalu merender ulang
+**Notes**
+- Progress bars are shown only in TTY
+- Normal logs temporarily clear progress and redraw it
 
 ---
 
@@ -192,7 +193,193 @@ const log = simpleLog({
 
 ---
 
-## 🧩 API Ringkas
+## 🎨 Styles Object
+
+The `style` object controls **text color, background color, and emphasis**
+for **Logger output** and **ProgressBar rendering**.
+
+It supports:
+- single style
+- dual style (0% vs >0%)
+- auto style (threshold-based)
+- global style
+- per-slot style
+
+---
+
+### 🧩 Basic Style Object
+
+```js
+{
+  color: 'green',
+  bg: 'black',
+  bold: true,
+  dim: false
+}
+```
+
+#### Properties
+
+| Property | Type | Description |
+|---------|------|-------------|
+| `color` | `string` | Foreground color name |
+| `bg` | `string` | Background color name |
+| `bold` | `boolean` | Bold text |
+| `dim` | `boolean` | Dim / faded text |
+
+---
+
+### 🎨 Supported Color Names
+
+#### Basic & Bright
+```
+black, red, green, yellow, blue, magenta, cyan, white
+brightBlack, brightRed, brightGreen, brightYellow,
+brightBlue, brightMagenta, brightCyan, brightWhite
+```
+
+#### Extended (examples)
+```
+/*Grayscale*/
+gray0 gray1 gray2 gray3 gray4 gray5 gray6 gray7 gray8 gray9
+
+/*Soft / Pastel*/
+softRed softGreen softYellow softBlue softMagenta softCyan
+
+/*Strong / Vivid*/
+orange pink violet teal lime amber
+
+/*Extra / Utility*/
+gold sky mint coral indigo brown olive navy maroon aqua chartreuse plum salmon steel sand forest wine slate smoke
+```
+
+> All colors work for both `color` and `bg`.
+
+---
+
+### 🟢 Single Style (Always Applied)
+
+```js
+style: { color: 'cyan', bold: true }
+```
+
+Use case: static label color, consistent emphasis.
+
+---
+
+### 🔵 Dual Style (0% vs >0%)
+
+```js
+style: [
+  { dim: true },                  // 0%
+  { color: 'blue', bold: true }   // >0%
+]
+```
+
+---
+
+### ⚪ Partial Dual Style (`null` allowed)
+
+```js
+style: [
+  null,                           // 0%
+  { color: 'green', bold: true }  // >0%
+]
+```
+
+---
+
+### 🤖 Auto Style (Threshold-Based)
+
+```js
+style: 'auto'
+```
+
+| Percent | Color |
+|---------|-------|
+| < 50%   | Blue |
+| 50–79% | Yellow |
+| ≥ 80%  | Red (bold) |
+
+---
+
+### 🌍 Global ProgressBar Style
+
+```js
+const log = simpleLog({
+  progress: {
+    slots: ['🌐 Scraping', '📊 DB Queue'],
+    theme: {
+      style: { color: 'magenta', bold: true }
+    }
+  }
+})
+```
+
+---
+
+### 🎯 Per-Slot Progress Style
+
+```js
+const log = simpleLog({
+  progress: {
+    slots: [
+      ['Scraping', { color: 'cyan' }],
+      ['DB Queue', 'auto']
+      'WEB Queue',
+    ]
+  }
+})
+```
+
+---
+
+### 🎨 Combined Example (Global + Slot)
+
+```js
+const log = simpleLog({
+  progress: {
+    slots: [
+      ['Scraping', { color: 'cyan' }],
+      ['DB Queue', 'auto']
+      'WEB Queue',
+    ],
+    theme: {
+      style: { color: 'magenta', bold: true }
+    }
+  }
+})
+```
+
+Visual concept:
+```
+MAGENTA 🌐 Scraping [BLUE ████░░░░░░░░░░░░░░] 30% page 3 MAGENTA
+```
+
+---
+
+### ⚠️ Notes
+
+- Styles only affect console output, never file logs
+- Colors apply only when `process.stdout.isTTY === true`
+- Logger styles and ProgressBar styles are independent by design
+
+---
+
+### ✅ Summary
+
+| Feature | Supported |
+|--------|-----------|
+| Single style | ✅ |
+| Dual style | ✅ |
+| Partial dual (`null`) | ✅ |
+| Auto style | ✅ |
+| Global ProgressBar style | ✅ |
+| Per-slot override | ✅ |
+| 256-color palette | ✅ |
+
+
+## 🧩 API Summary
 
 ```js
 log.log(...args)
@@ -247,18 +434,16 @@ simpleLog()
 simplelog/
 ├─ package.json
 └─ src/
-   ├─ index.js                # entry point (simpleLog)
-   │
-   ├─ Logger.js               # logger utama
-   ├─ Levels.js               # level & style
-   ├─ Formatter.js            # ANSI formatter
-   ├─ Stringify.js            # stringify + truncate
-   ├─ Time.js                 # time formatter
-   ├─ FileSink.js             # file logging
-   │
+   ├─ index.js
+   ├─ Logger.js
+   ├─ Levels.js
+   ├─ Formatter.js
+   ├─ Stringify.js
+   ├─ Time.js
+   ├─ FileSink.js
    └─ Progress/
-      ├─ ProgressManager.js   # progress state
-      └─ ProgressRenderer.js  # progress bar renderer
+      ├─ ProgressManager.js
+      └─ ProgressRenderer.js
 ```
 
 ---
@@ -266,17 +451,17 @@ simplelog/
 ## 🧠 Design Philosophy
 
 - Small core
-- No dependency
+- Zero dependencies
 - Predictable output
-- Audit friendly
+- Audit-friendly
 - Library-first design
 
-Cocok untuk:
+Perfect for:
 - CLI tools
-- Bot WhatsApp / Telegram
-- Scraper
-- Worker / queue
-- Base library (`simpleStore`, `simpleFetch`, dll)
+- WhatsApp / Telegram bots
+- Scrapers
+- Workers / queues
+- Base libraries (`simpleStore`, `simpleFetch`, etc.)
 
 ---
 
