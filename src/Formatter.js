@@ -63,8 +63,6 @@ const BG = Object.assign({
 
 export function format(text, style, tty = true) {
   if (!tty || !style) return text
-  COLORS = COLORS.concat(EXT)
-  BG = BG.concat(EXT)
 
   const codes = []
   if (style.bold) codes.push(1)
