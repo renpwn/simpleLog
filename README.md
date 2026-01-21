@@ -46,8 +46,11 @@ npm install
 
 ```js
 import { simpleLog } from '@renpwn/simplelog'
-
 const log = simpleLog()
+
+OR
+
+import { simpleLog as log} from '@renpwn/simplelog'
 
 log.log('hello')
 log.info('info message')
@@ -77,12 +80,20 @@ log.debug('Debug message')
 log.info('Server started')
 log.warn('Memory usage high')
 log.error({ code: 500, msg: 'Fatal error' })
+
+OR just
+...
+  color: true,      // enable ANSI color (TTY only)
+  time: true,       // default values locale ID & position PREFIX
+....
 ```
 
 **Notes**
 - `level` → minimum log level to display
 - `color` → auto-disabled in non-TTY / CI
 - `time` → compact and consistent timestamp
+  - true → default { locale: 'id', position: 'prefix' }
+  - object → fully configurable (locale, position)
 
 ---
 
