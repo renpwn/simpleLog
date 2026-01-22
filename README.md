@@ -11,10 +11,12 @@
 ## ✨ Features
 
 - 🎨 Colored log levels (log, debug, info, warn, error)
+- 🎨 Advanced styles (single, dual, auto, global & per-slot)
+- 🌈 Manual colors support (palette, ANSI, HEX, RGB)
 - 🧠 Safe stringify (object → JSON, anti-crash, truncate)
-- 🕒 Timestamp with locale support (`id`, `en`)
+- 🕒 Timestamp with locale & custom template support (`id`, `en`)
 - 📁 File logging (TXT / JSONL with auto-backup)
-- 📊 Multi progress bar (TTY-aware, auto redraw)
+- 📊 Multi progress bar (TTY-aware, auto redraw, styled)
 - 🧹 CI & non-TTY safe
 - ⚡ Zero dependencies
 - 🧩 Modular & audit-friendly
@@ -597,15 +599,6 @@ Works Everywhere
 - Termux (Android)
 
 If truecolor is not supported, the terminal will gracefully fallback.
-
----
-
-### ✅ Summary
-
-- ⏱️ Fully customizable time format with tokens
-- 🎨 Manual color support (HEX / RGB / ANSI)
-- 🧩 Backward compatible
-- 🚀 Safe for minor releases
 
 ---
 
