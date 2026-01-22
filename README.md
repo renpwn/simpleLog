@@ -97,6 +97,82 @@ OR just
 
 ---
 
+#### ⏱️ Custom Time Template
+
+By default, `simpleLog` uses a compact, locale-based timestamp:
+
+```
+[SEN|31.DES|10:15:04]
+```
+
+You can now fully customize the timestamp format using a **template string**.
+
+##### Basic Usage
+
+```js
+const log = simpleLog({
+  time: {
+    template: '[{HH}:{mm}:{ss}]'
+  }
+})
+```
+
+Output:
+```
+[10:15:04] Server started
+```
+
+---
+
+##### Supported Time Tokens
+
+Assume the following datetime:
+```
+Monday, 31 December 2026 — 10:15:04.123
+```
+
+| Token | Output | Description |
+|------|--------|------------|
+| `{TIME}` | `10:15:04` | Full time (HH:mm:ss) |
+| `{HH}` | `10` | Hour |
+| `{mm}` | `15` | Minute |
+| `{ss}` | `04` | Second |
+| `{ms}` | `123` | Millisecond |
+| `{YYYY}` | `2026` | Year |
+| `{MM}` | `12` | Month (number) |
+| `{DD}` | `31` | Day of month |
+| `{DAY}` | `SEN` / `MON` | Locale-based weekday |
+| `{MON}` | `DES` / `DEC` | Locale-based month |
+| `{iso}` | `2026-12-31T10:15:04.123Z` | ISO 8601 |
+
+---
+
+##### Locale-aware Template
+
+```js
+time: {
+  locale: 'en',
+  template: '{DAY} {DD} {MON} {TIME}'
+}
+```
+
+Output:
+```
+MON 31 DEC 10:15:04
+```
+
+---
+
+##### Default Behavior (Unchanged)
+
+If no template is provided, `simpleLog` keeps using the original format:
+
+```js
+[{DAY}|{DD}.{MON}|{TIME}]
+```
+
+---
+
 ### 2️⃣ Safe Stringify & Truncate
 
 ```js
@@ -269,6 +345,41 @@ gold sky mint coral indigo brown olive navy maroon aqua chartreuse plum salmon s
 ```
 
 > All colors work for both `color` and `bg`.
+
+---
+
+#### 🎨 Advanced Styles & Manual Colors
+
+The `style` object now supports **manual color definitions**, in addition to named palettes.
+
+##### Supported Style Inputs
+
+| Type | Example |
+|----|--------|
+| Named palette | `{ color: 'softBlue' }` |
+| ANSI basic | `{ color: 31 }` |
+| ANSI 256 | `{ color: 196 }` |
+| HEX color | `{ color: '#ff0000' }` |
+| RGB string | `{ color: 'rgb(255,0,0)' }` |
+| RGB array | `{ color: [255, 0, 0] }` |
+
+All formats also work for `bg` (background).
+
+---
+
+##### HEX & RGB Examples
+
+```js
+log.info('HEX red', {
+  color: '#ff0000',
+  bold: true
+})
+
+log.warn('RGB blue', {
+  bg: 'rgb(30,144,255)',
+  color: '#ffffff'
+})
+```
 
 ---
 
@@ -477,6 +588,24 @@ Perfect for:
 - Scrapers
 - Workers / queues
 - Base libraries (`simpleStore`, `simpleFetch`, etc.)
+
+Works Everywhere
+
+- Linux / macOS terminals
+- Windows Terminal
+- VSCode integrated terminal
+- Termux (Android)
+
+If truecolor is not supported, the terminal will gracefully fallback.
+
+---
+
+### ✅ Summary
+
+- ⏱️ Fully customizable time format with tokens
+- 🎨 Manual color support (HEX / RGB / ANSI)
+- 🧩 Backward compatible
+- 🚀 Safe for minor releases
 
 ---
 
