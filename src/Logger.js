@@ -7,23 +7,22 @@ import { ProgressManager } from './Progress/ProgressManager.js'
 
 export class Logger {
   constructor(opts = {}) {
-    this.level = normalizeLevel(opts.level)
-    this.color = !!opts.color
+    const { level, color, truncate, maxLength, file, progress } = opts
+    const time = opts.time === true ? {} : (opts.time || {})
+  
+    this.level = normalizeLevel(level)
+    this.color = !!color
     this.tty = process.stdout.isTTY && !process.env.CI
 
-    this.time = !!opts.time
-    this.timeLocale = opts.time?.locale || 'id'
-    this.timePos = opts.time?.position || 'prefix'
+    this.time = !!time
+    this.timeLocale = time?.locale
+    this.template = time?.template
+    this.timePos = time?.position || 'prefix'
 
-    this.stringify = createStringifier(
-      opts.truncate || { maxLength: opts.maxLength }
-    )
+    this.stringify = createStringifier( truncate || { maxLength } )
+    this.file = new FileSink(file || {})
 
-    this.file = new FileSink(opts.file || {})
-
-    this.progress = opts.progress
-      ? new ProgressManager(opts.progress.slots || [], opts.progress.theme)
-      : null
+    this.progress = progress ? new ProgressManager(progress.slots || [], progress.theme) : null
 
     this.lastProgressLines = 0
   }
@@ -39,13 +38,13 @@ export class Logger {
 
   /* ================= PROGRESS API ================= */
 
-  updateProgress(name, cur, total, text) {
+  update(name, cur, total, text) {
     if (!this.progress) return
     this.progress.update(name, cur, total, text)
     this.renderProgress()
   }
 
-  removeProgress(name) {
+  remove(name) {
     if (!this.progress) return
     this.progress.remove(name)
     this.renderProgress()
@@ -87,7 +86,7 @@ export class Logger {
     if (!this.allow(type)) return
 
     const msg = args.map(this.stringify.toStr).join(' ')
-    const t = this.time ? formatTime(this.timeLocale) : null
+    const t = this.time ? formatTime({locale: this.timeLocale, template: this.template}) : null
 
     const out =
       t && this.timePos === 'suffix'

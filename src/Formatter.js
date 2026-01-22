@@ -61,6 +61,60 @@ const BG = Object.assign({
   brightBlue:104, brightMagenta:105, brightCyan:106, brightWhite:107
 }, EXT)
 
+function parseRgbString(str) {
+  const m = str.match(/^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i)
+  if (!m) return null
+  return m.slice(1).map(n => Math.max(0, Math.min(255, Number(n))))
+}
+
+function hexToRgb(hex) {
+  hex = hex.replace('#', '')
+  if (hex.length === 3)
+    hex = hex.split('').map(c => c + c).join('')
+  const num = parseInt(hex, 16)
+  if (Number.isNaN(num)) return null
+  return [(num >> 16) & 255, (num >> 8) & 255, num & 255]
+}
+
+function resolveColor(val, isBg = false) {
+  if (val == null) return null
+  const prefix = isBg ? 48 : 38
+
+  // 🔹 RGB array [r,g,b]
+  if (Array.isArray(val) && val.length === 3) {
+    const [r, g, b] = val.map(n => Math.max(0, Math.min(255, n)))
+    return `${prefix};2;${r};${g};${b}`
+  }
+
+  // 🔹 rgb(255,0,0)
+  if (typeof val === 'string' && val.startsWith('rgb')) {
+    const rgb = parseRgbString(val)
+    if (rgb) return `${prefix};2;${rgb.join(';')}`
+  }
+
+  // 🔹 hex '#rrggbb'
+  if (typeof val === 'string' && val.startsWith('#')) {
+    const rgb = hexToRgb(val)
+    if (rgb) return `${prefix};2;${rgb.join(';')}`
+  }
+
+  // 🔹 numeric ANSI / 256-color
+  if (typeof val === 'number') {
+    return val <= 107 ? val : `${prefix};5;${val}`
+  }
+
+  // 🔹 named palette
+  if (typeof val === 'string') {
+    const table = isBg ? BG : COLORS
+    if (val in table) {
+      const c = table[val]
+      return c <= 107 ? c : `${prefix};5;${c}`
+    }
+  }
+
+  return null
+}
+
 export function format(text, style, tty = true) {
   if (!tty || !style) return text
 
@@ -68,13 +122,11 @@ export function format(text, style, tty = true) {
   if (style.bold) codes.push(1)
   if (style.dim) codes.push(2)
   
-  // foreground
-  const c = COLORS[style.color]
-  style.color in COLORS && codes.push(c <= 97 ? c : `38;5;${c}`)
+  const fg = resolveColor(style.color, false)
+  const bg = resolveColor(style.bg, true)
 
-  // background
-  const b = BG[style.bg]
-  style.bg in BG && codes.push(b <= 107 ? b : `48;5;${b}`)
+  if (fg) codes.push(fg)
+  if (bg) codes.push(bg)
   
   return codes.length
     ? `\x1b[${codes.join(';')}m${text}\x1b[0m`

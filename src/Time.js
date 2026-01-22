@@ -9,9 +9,36 @@ const LOCALES = {
   }
 }
 
-export function formatTime(locale = 'id', date = new Date()) {
+
+export function formatTime({
+  locale = 'id',
+  date = new Date(),
+  template ='[{DAY}|{DD}.{MON}|{TIME}]'
+} = {}) {
   const l = LOCALES[locale] || LOCALES.id
   const d = date
+  
+  const pad = n => String(n).padStart(2, '0')
+  
+  const map = {
+    iso: d.toISOString(),
+    
+    HH: pad(d.getHours()),
+    mm: pad(d.getMinutes()),
+    ss: pad(d.getSeconds()),
+    ms: d.getMilliseconds(),
+    
+    TIME: d.toTimeString().split(' ')[0],
+    
+    YYYY: d.getFullYear(),
+    MM: pad(d.getMonth() + 1),
+    DD: pad(d.getDate()),
 
-  return `${l.days[d.getDay()]}|${String(d.getDate()).padStart(2,'0')}.${l.mons[d.getMonth()]}|${d.toTimeString().split(' ')[0]}`
+    // locale-based tokens
+    DAY: l.days[d.getDay()],
+    MON: l.mons[d.getMonth()]
+  }
+  
+
+  return template.replace(/\{(\w+)\}/g, (_, k) => map[k] ?? '')
 }
