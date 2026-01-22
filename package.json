@@ -1,6 +1,6 @@
 {
   "name": "@renpwn/simplelog",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "description": "Lightweight, safe, audit-friendly logger for CLI tools and long-running Node.js processes",
   "type": "module",
   "main": "./src/index.js",
