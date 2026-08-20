@@ -14,16 +14,26 @@ export class FileSink {
     this.basePath = path.resolve(process.cwd(), opts.path)
 
     fs.mkdirSync(path.dirname(this.basePath), { recursive: true })
+
+    if (this.backup && fs.existsSync(this.basePath)) {
+      this.backupFile(this.basePath)
+    }
   }
 
   backupFile(file) {
     if (!this.backup || !fs.existsSync(file)) return
-    fs.copyFileSync(file, file + '.bak')
+    try {
+      fs.copyFileSync(file, file + '.bak')
+    } catch {}
   }
 
   restoreFile(file) {
     const bak = file + '.bak'
-    if (fs.existsSync(bak)) fs.copyFileSync(bak, file)
+    if (fs.existsSync(bak)) {
+      try {
+        fs.copyFileSync(bak, file)
+      } catch {}
+    }
   }
 
   write(level, message) {
@@ -32,7 +42,6 @@ export class FileSink {
 
     try {
       if (this.format === 'json') {
-        this.backupFile(this.basePath)
         fs.appendFileSync(
           this.basePath,
           JSON.stringify({ time, level, message }) + '\n'

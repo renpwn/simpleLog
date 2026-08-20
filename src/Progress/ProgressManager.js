@@ -9,11 +9,12 @@ export class ProgressManager {
   }
 
   update(name, cur, total, text = "") {
+    const prev = this.state.get(name)
     this.state.set(name, {
       cur,
       total: total < cur ? cur : total,
       text,
-      start: Date.now()
+      start: prev?.start || Date.now()
     })
   }
 

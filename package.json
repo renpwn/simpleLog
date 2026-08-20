@@ -1,11 +1,18 @@
 {
   "name": "@renpwn/simplelog",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Lightweight, safe, audit-friendly logger for CLI tools and long-running Node.js processes",
   "type": "module",
   "main": "./src/index.js",
+  "types": "./src/index.d.ts",
   "exports": {
-    ".": "./src/index.js"
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    }
+  },
+  "scripts": {
+    "test": "node --test test/**/*.test.js"
   },
   "files": [
     "src"

@@ -8,16 +8,17 @@ import { ProgressManager } from './Progress/ProgressManager.js'
 export class Logger {
   constructor(opts = {}) {
     const { level, color, truncate, maxLength, file, progress } = opts
-    const time = opts.time === true ? {} : (opts.time || {})
+    const isTimeEnabled = opts.time === true || (typeof opts.time === 'object' && opts.time !== null)
+    const timeOpts = typeof opts.time === 'object' && opts.time !== null ? opts.time : {}
   
     this.level = normalizeLevel(level)
     this.color = !!color
     this.tty = process.stdout.isTTY && !process.env.CI
 
-    this.time = !!time
-    this.timeLocale = time?.locale
-    this.template = time?.template
-    this.timePos = time?.position || 'prefix'
+    this.time = isTimeEnabled
+    this.timeLocale = timeOpts.locale
+    this.template = timeOpts.template
+    this.timePos = timeOpts.position || 'prefix'
 
     this.stringify = createStringifier( truncate || { maxLength } )
     this.file = new FileSink(file || {})
@@ -48,6 +49,14 @@ export class Logger {
     if (!this.progress) return
     this.progress.remove(name)
     this.renderProgress()
+  }
+
+  updateProgress(name, cur, total, text) {
+    this.update(name, cur, total, text)
+  }
+
+  removeProgress(name) {
+    this.remove(name)
   }
 
   /* ================= RENDER CONTROL ================= */
@@ -85,27 +94,37 @@ export class Logger {
   write(type, args, style) {
     if (!this.allow(type)) return
 
-    const msg = args.map(this.stringify.toStr).join(' ')
+    let userStyle = style
+    const logArgs = [...args]
+
+    if (!userStyle && logArgs.length > 1 && typeof logArgs[logArgs.length - 1] === 'object' && logArgs[logArgs.length - 1] !== null) {
+      const last = logArgs[logArgs.length - 1]
+      if (('color' in last || 'bg' in last || 'bold' in last || 'dim' in last) && Object.keys(last).every(k => ['color', 'bg', 'bold', 'dim'].includes(k))) {
+        userStyle = logArgs.pop()
+      }
+    }
+
+    const rawMsg = logArgs.map(this.stringify.toStr).join(' ')
     const t = this.time ? formatTime({locale: this.timeLocale, template: this.template}) : null
 
     const out =
       t && this.timePos === 'suffix'
-        ? `${msg} | ${t}`
+        ? `${rawMsg} | ${t}`
         : t
-        ? `${t} ${msg}`
-        : msg
+        ? `${t} ${rawMsg}`
+        : rawMsg
 
     if (this.progress) {
       this.clearProgress()
       process.stdout.write(
-        format(out, this.style(type, style), this.tty) + '\n'
+        format(out, this.style(type, userStyle), this.tty) + '\n'
       )
       this.renderProgress()
     } else {
-      console.log(format(out, this.style(type, style), this.tty))
+      console.log(format(out, this.style(type, userStyle), this.tty))
     }
 
-    this.file.write(type, out)
+    this.file.write(type, rawMsg)
   }
 
   log(...a) { this.write('log', a) }

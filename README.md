@@ -50,9 +50,9 @@ npm install
 import { simpleLog } from '@renpwn/simplelog'
 const log = simpleLog()
 
-OR
-
-import { simpleLog as log} from '@renpwn/simplelog'
+// OR default import
+import simpleLog from '@renpwn/simplelog'
+const log = simpleLog()
 
 log.log('hello')
 log.info('info message')
@@ -425,9 +425,9 @@ style: 'auto'
 
 | Percent | Color |
 |---------|-------|
-| < 50%   | Blue |
-| 50–79% | Yellow |
-| ≥ 80%  | Red (bold) |
+| < 45%   | Blue |
+| 45–84%  | Yellow |
+| ≥ 85%   | Red (bold) |
 
 ---
 
@@ -453,8 +453,8 @@ const log = simpleLog({
   progress: {
     slots: [
       ['Scraping', { color: 'cyan' }],
-      ['DB Queue', 'auto']
-      'WEB Queue',
+      ['DB Queue', 'auto'],
+      'WEB Queue'
     ]
   }
 })
@@ -469,8 +469,8 @@ const log = simpleLog({
   progress: {
     slots: [
       ['Scraping', { color: 'cyan' }],
-      ['DB Queue', 'auto']
-      'WEB Queue',
+      ['DB Queue', 'auto'],
+      'WEB Queue'
     ],
     theme: {
       style: { color: 'magenta', bold: true }
@@ -561,8 +561,16 @@ simpleLog()
 ```
 simplelog/
 ├─ package.json
+├─ .gitignore
+├─ test/
+│  ├─ stringify.test.js
+│  ├─ fileSink.test.js
+│  ├─ time.test.js
+│  ├─ logger.test.js
+│  └─ formatter.test.js
 └─ src/
    ├─ index.js
+   ├─ index.d.ts
    ├─ Logger.js
    ├─ Levels.js
    ├─ Formatter.js

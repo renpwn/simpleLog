@@ -35,14 +35,13 @@ export class ProgressRenderer {
       Math.max(0, Math.floor(percent / 100 * this.size))
     )
     
-    style = this.styleResolve(style, cur, percent)
-    this.style = this.styleResolve(this.style, cur)
+    const barStyle = this.styleResolve(style, cur, percent)
+    const frameStyle = this.styleResolve(this.style, cur, percent)
     
-    const left = format(`${name} ${this.left}`, this.style, this.tty)
-    const right = format(`${this.right} ${percent}% ${text}`, this.style, this.tty)
-    const bar = format(this.filled.repeat(filled) + this.empty.repeat(this.size - filled), style, this.tty)
+    const left = format(`${name} ${this.left}`, frameStyle, this.tty)
+    const right = format(`${this.right} ${percent}% ${text}`, frameStyle, this.tty)
+    const bar = format(this.filled.repeat(filled) + this.empty.repeat(this.size - filled), barStyle, this.tty)
     
-
     return left + bar + right
   }
 }
